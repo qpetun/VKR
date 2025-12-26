@@ -8,9 +8,10 @@ interface KanbanColumnProps {
   tasks: Task[];
   onDrop: (taskId: string, targetColumn: string) => void;
   onAddTask?: () => void;
+  onTaskClick?: (task: Task) => void;
 }
 
-export function KanbanColumn({ id, title, tasks, onDrop, onAddTask }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, tasks, onDrop, onAddTask, onTaskClick }: KanbanColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'TASK',
     drop: (item: { id: string }) => {
@@ -39,7 +40,11 @@ export function KanbanColumn({ id, title, tasks, onDrop, onAddTask }: KanbanColu
       {/* Tasks */}
       <div className="space-y-3 mb-3">
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard 
+            key={task.id} 
+            task={task}
+            onClick={() => onTaskClick?.(task)}
+          />
         ))}
       </div>
 

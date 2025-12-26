@@ -6,6 +6,7 @@ import { BoardHeader } from '../components/BoardHeader';
 import { KanbanColumn } from '../components/KanbanColumn';
 import { Task } from '../components/TaskCard';
 import { TaskModal } from '../components/TaskModal';
+import { TaskDetailPanel } from '../components/TaskDetailPanel';
 
 interface Column {
   id: string;
@@ -114,6 +115,9 @@ const initialColumns: Column[] = [
 export function BoardPage() {
   const [columns, setColumns] = useState(initialColumns);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const handleTaskDrop = (taskId: string, targetColumnId: string) => {
     setColumns((prevColumns) => {
@@ -143,15 +147,13 @@ export function BoardPage() {
   };
 
   const handleCreateTask = (taskData: any) => {
-    console.log('Creating task:', taskData);
-    // Здесь будет логика создания задачи
-    // Можно добавить новую задачу в нужную колонку
     const newTask: Task = {
       id: Date.now().toString(),
       title: taskData.title,
       tag: 'Контент',
       tagColor: '#5B9DD9',
       date: taskData.date,
+      priority: taskData.priority,
       assignee: { name: 'Новый пользователь', avatar: '' },
     };
 
@@ -164,6 +166,51 @@ export function BoardPage() {
     );
   };
 
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsDetailPanelOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsDetailPanelOpen(false);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleUpdateTask = (taskData: any) => {
+    if (editingTask) {
+      setColumns((prevColumns) =>
+        prevColumns.map((col) => ({
+          ...col,
+          tasks: col.tasks.map((task) =>
+            task.id === editingTask.id
+              ? {
+                  ...task,
+                  title: taskData.title,
+                  priority: taskData.priority,
+                  date: taskData.date,
+                }
+              : task
+          ),
+        }))
+      );
+      setEditingTask(null);
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setColumns((prevColumns) =>
+      prevColumns.map((col) => ({
+        ...col,
+        tasks: col.tasks.filter((task) => task.id !== taskId),
+      }))
+    );
+  };
+
+  const handleUpdateStatus = (taskId: string, newStatus: string) => {
+    handleTaskDrop(taskId, newStatus);
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex h-screen bg-[#f5f7fa]">
@@ -172,7 +219,10 @@ export function BoardPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <BoardHeader
             projectName="Маркетинг"
-            onAddTask={() => setIsTaskModalOpen(true)}
+            onAddTask={() => {
+              setEditingTask(null);
+              setIsTaskModalOpen(true);
+            }}
           />
 
           <main className="flex-1 overflow-x-auto overflow-y-hidden p-6">
@@ -184,7 +234,11 @@ export function BoardPage() {
                   title={column.title}
                   tasks={column.tasks}
                   onDrop={handleTaskDrop}
-                  onAddTask={() => setIsTaskModalOpen(true)}
+                  onAddTask={() => {
+                    setEditingTask(null);
+                    setIsTaskModalOpen(true);
+                  }}
+                  onTaskClick={handleTaskClick}
                 />
               ))}
             </div>
@@ -194,9 +248,25 @@ export function BoardPage() {
 
       <TaskModal
         isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        onSave={handleCreateTask}
-        mode="create"
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setEditingTask(null);
+        }}
+        onSave={editingTask ? handleUpdateTask : handleCreateTask}
+        mode={editingTask ? 'edit' : 'create'}
+        initialData={editingTask}
+      />
+
+      <TaskDetailPanel
+        task={selectedTask}
+        isOpen={isDetailPanelOpen}
+        onClose={() => {
+          setIsDetailPanelOpen(false);
+          setSelectedTask(null);
+        }}
+        onEdit={handleEditTask}
+        onDelete={handleDeleteTask}
+        onUpdateStatus={handleUpdateStatus}
       />
     </DndProvider>
   );

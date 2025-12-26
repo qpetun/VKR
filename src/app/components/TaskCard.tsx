@@ -7,6 +7,7 @@ export interface Task {
   tag: string;
   tagColor: string;
   date?: string;
+  priority?: 'low' | 'medium' | 'high';
   progress?: { current: number; total: number };
   assignee: {
     name: string;
@@ -16,9 +17,16 @@ export interface Task {
 
 interface TaskCardProps {
   task: Task;
+  onClick?: () => void;
 }
 
-export function TaskCard({ task }: TaskCardProps) {
+const priorityColors = {
+  low: 'bg-gray-400',
+  medium: 'bg-orange-400',
+  high: 'bg-red-500',
+};
+
+export function TaskCard({ task, onClick }: TaskCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'TASK',
     item: { id: task.id },
@@ -30,10 +38,18 @@ export function TaskCard({ task }: TaskCardProps) {
   return (
     <div
       ref={drag}
-      className={`bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-move ${
+      onClick={onClick}
+      className={`bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
         isDragging ? 'opacity-50' : 'opacity-100'
       }`}
     >
+      {/* Priority Indicator */}
+      {task.priority && (
+        <div className="flex justify-end mb-2">
+          <div className={`w-2 h-2 rounded-full ${priorityColors[task.priority]}`} />
+        </div>
+      )}
+
       <h4 className="text-sm font-medium text-gray-900 mb-3">{task.title}</h4>
 
       {/* Tag */}
