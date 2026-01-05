@@ -13,6 +13,10 @@ export interface Task {
     name: string;
     avatar: string;
   };
+  description?: string;
+  column?: string;
+  checklist?: Array<{ id: string; text: string; completed: boolean }>;
+  comments?: Array<{ id: string; author: string; avatar: string; text: string; date: string }>;
 }
 
 interface TaskCardProps {
@@ -64,19 +68,19 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        {/* Date or Progress */}
-        <div className="flex items-center gap-1 text-xs text-gray-500">
-          {task.date && (
-            <>
-              <Calendar className="w-3 h-3" />
-              <span>{task.date}</span>
-            </>
-          )}
+        {/* Date and Progress */}
+        <div className="flex flex-col gap-1">
           {task.progress && (
-            <>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
               <CheckCircle className="w-3 h-3" />
               <span>{task.progress.current} из {task.progress.total}</span>
-            </>
+            </div>
+          )}
+          {task.date && (
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Calendar className="w-3 h-3" />
+              <span>{task.date}</span>
+            </div>
           )}
         </div>
 

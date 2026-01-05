@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Calendar as CalendarIcon } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 
@@ -36,6 +36,15 @@ const assignees = [
   { id: '4', name: 'Петр Смирнов' },
 ];
 
+const categories = [
+  { id: 'content', label: 'Контент', color: '#5B9DD9' },
+  { id: 'advertising', label: 'Реклама', color: '#9B88E0' },
+  { id: 'seo', label: 'SEO', color: '#7C88E0' },
+  { id: 'design', label: 'Дизайн', color: '#E88B9B' },
+  { id: 'development', label: 'Разработка', color: '#6BCF7F' },
+  { id: 'analytics', label: 'Аналитика', color: '#F9C74F' },
+];
+
 export function TaskModal({ isOpen, onClose, onSave, initialData, mode = 'create' }: TaskModalProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -43,8 +52,45 @@ export function TaskModal({ isOpen, onClose, onSave, initialData, mode = 'create
   const [date, setDate] = useState(initialData?.date || '');
   const [priority, setPriority] = useState(initialData?.priority || 'medium');
   const [column, setColumn] = useState(initialData?.column || 'planned');
+  const [category, setCategory] = useState(initialData?.tag || 'Контент');
   const [checklist, setChecklist] = useState<ChecklistItem[]>(initialData?.checklist || []);
   const [newChecklistItem, setNewChecklistItem] = useState('');
+
+  // Update form fields when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData && mode === 'edit') {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      // Get assignee ID from assignee name
+      const assigneeData = assignees.find(a => a.name === initialData.assignee?.name);
+      setAssignee(assigneeData?.id || '');
+      setDate(initialData.date || '');
+      setPriority(initialData.priority || 'medium');
+      setColumn(initialData.column || 'planned');
+      setCategory(initialData.tag || 'Контент');
+      setChecklist(initialData.checklist || []);
+    } else if (mode === 'create') {
+      resetForm();
+    }
+  }, [initialData, mode]);
+
+  // Reset form when modal closes or mode changes
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setAssignee('');
+    setDate('');
+    setPriority('medium');
+    setColumn('planned');
+    setCategory('Контент');
+    setChecklist([]);
+    setNewChecklistItem('');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const handleAddChecklistItem = () => {
     if (newChecklistItem.trim()) {
@@ -76,13 +122,15 @@ export function TaskModal({ isOpen, onClose, onSave, initialData, mode = 'create
       date,
       priority,
       column,
+      tag: category,
       checklist,
     });
+    resetForm();
     onClose();
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root open={isOpen} onOpenChange={handleClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-50">
@@ -201,6 +249,24 @@ export function TaskModal({ isOpen, onClose, onSave, initialData, mode = 'create
               </select>
             </div>
 
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Категория
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.label}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Checklist */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -260,7 +326,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialData, mode = 'create
           {/* Footer */}
           <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end gap-3 rounded-b-2xl">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-6 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
             >
               Отмена

@@ -29,7 +29,7 @@ export function ProjectsPage() {
 
   return (
     <div className="flex h-screen bg-[#f5f7fa]">
-      <Sidebar />
+      <Sidebar onCreateProject={() => setIsCreateModalOpen(true)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />

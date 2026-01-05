@@ -38,7 +38,7 @@ export function KanbanColumn({ id, title, tasks, onDrop, onAddTask, onTaskClick 
       </div>
 
       {/* Tasks */}
-      <div className="space-y-3 mb-3">
+      <div className="space-y-4 mb-4">
         {tasks.map((task) => (
           <TaskCard 
             key={task.id} 

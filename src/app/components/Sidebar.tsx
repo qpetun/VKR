@@ -15,7 +15,11 @@ const menuItems: MenuItem[] = [
   { icon: Settings, label: 'Настройки', path: '/settings' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onCreateProject?: () => void;
+}
+
+export function Sidebar({ onCreateProject }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,12 +64,17 @@ export function Sidebar() {
       </nav>
 
       {/* Create Project Button */}
-      <div className="p-4 border-t border-gray-200">
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#4a8cc9] hover:bg-[#3d7ab5] text-white rounded-lg transition-colors">
-          <span className="text-xl">+</span>
-          <span>Создать проект</span>
-        </button>
-      </div>
+      {onCreateProject && (
+        <div className="p-4 border-t border-gray-200">
+          <button 
+            onClick={onCreateProject}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#4a8cc9] hover:bg-[#3d7ab5] text-white rounded-lg transition-colors"
+          >
+            <span className="text-xl">+</span>
+            <span>Создать проект</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 }
